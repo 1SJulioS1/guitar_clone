@@ -1,0 +1,11 @@
+venv
+song_split/venv
+song_split/pretrained_models
+song_split/ffmpeg
+build
+game/pretrained_models
+pretrained_models
+data
+song_split
+dist
+separated_audio
