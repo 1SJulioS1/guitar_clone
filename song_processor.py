@@ -1,24 +1,15 @@
 import os
-import librosa
 import numpy as np
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from game.game_interface import run_interface  # Importar la función de juego para iniciar el juego
+from audio_processing.data_preparation import load_audio, preprocess_audio
+from note_generator.note_generation import generate_notes
+from game.game_interface import run_interface
+import random  # To assign notes to random columns
 
-def load_audio(file_path, sample_rate=22050):
-    """Carga el archivo de audio sin importar el formato (.mp3, .wav, etc.)."""
-    audio_data, sr = librosa.load(file_path, sr=sample_rate)
-    return audio_data, sr
-
-def preprocess_audio(audio_data):
-    """Normaliza el audio y lo convierte a mono si es necesario."""
-    audio_data = librosa.util.normalize(audio_data)
-    if audio_data.ndim > 1:
-        audio_data = np.mean(audio_data, axis=1)
-    return audio_data
 
 def process_and_save_song():
-    """Permite al usuario seleccionar una canción, procesa el audio y lo guarda en un directorio de salida."""
+    """Selects and processes a song, then saves it in processed_songs/."""
     file_path = filedialog.askopenfilename(title="Seleccionar Canción", filetypes=[("Audio Files", "*.mp3 *.wav")])
     if not file_path:
         return
@@ -39,57 +30,63 @@ def process_and_save_song():
         messagebox.showerror("Error", f"Hubo un error al procesar la canción: {e}")
 
 def list_processed_songs():
-    """Lista las canciones procesadas en el directorio 'processed_songs'."""
+    """Lists all processed songs in the 'processed_songs' directory."""
     output_dir = "processed_songs"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    # Obtener los archivos .npy en el directorio de canciones procesadas
-    processed_files = [f for f in os.listdir(output_dir) if f.endswith("_processed.npy")]
-    return processed_files
+    return [f for f in os.listdir(output_dir) if f.endswith("_processed.npy")]
 
 def select_processed_song_and_start_game():
-    """Permite seleccionar una canción procesada de una lista y luego inicia el juego con esa canción."""
-    # Crear ventana de selección de canciones
+    """Displays a list of processed songs and starts the game with the selected song."""
+    # Create the selection window
     selection_window = tk.Toplevel()
     selection_window.title("Seleccionar Canción Procesada")
     
-    # Lista de canciones procesadas
+    # List available processed songs
     processed_files = list_processed_songs()
     if not processed_files:
         messagebox.showinfo("Sin canciones", "No se encontraron canciones procesadas en 'processed_songs'.")
         selection_window.destroy()
         return
     
-    # Variable para almacenar la canción seleccionada
+    # Define `selected_song` as a local variable within `select_processed_song_and_start_game`
     selected_song = tk.StringVar(selection_window)
-    selected_song.set(processed_files[0])  # Seleccionar la primera canción por defecto
-
-    # Menú desplegable para seleccionar una canción
+    selected_song.set(processed_files[0])  # Set the first song as default
+    
+    # Dropdown menu for song selection
     dropdown = tk.OptionMenu(selection_window, selected_song, *processed_files)
     dropdown.pack(pady=20)
 
     def start_game():
         song_path = os.path.join("processed_songs", selected_song.get())
         processed_audio = np.load(song_path)
-        run_interface(processed_audio, song_name=selected_song.get())  # Usar `song_name` si `run_interface` está modificado
+        COLUMNS = 4
+        
+        
+        # Generate notes and assign each to a random column
+        sample_rate = 22050
+        notes = generate_notes(processed_audio, sample_rate)
+        for note in notes:
+            note["column"] = random.randint(0, COLUMNS - 1)  # Assign each note to one of the columns
+
+        run_interface(notes, processed_audio, song_name=selected_song.get())
         selection_window.destroy()
 
-    # Botón para iniciar el juego con la canción seleccionada
+
+    # Button to start the game with the selected song
     start_button = tk.Button(selection_window, text="Jugar", command=start_game)
     start_button.pack(pady=10)
 
-# Interfaz de `song_processor.py` para pruebas
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Procesador de Canciones")
     root.geometry("300x200")
     
-    # Botón para procesar una nueva canción
     process_button = tk.Button(root, text="Procesar Canción", command=process_and_save_song)
     process_button.pack(pady=20)
     
-    # Botón para seleccionar una canción procesada y jugar
     select_button = tk.Button(root, text="Seleccionar Canción Procesada y Jugar", command=select_processed_song_and_start_game)
     select_button.pack(pady=20)
     
