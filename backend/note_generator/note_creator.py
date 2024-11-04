@@ -15,11 +15,11 @@ class NoteCreator:
         self.onsets = audio_features.get("onsets", [])
         self.energy = audio_features.get("energy", 1.0)
         self.pitch = audio_features.get("pitch", 0.0)
-        self.spectrogram = audio_features.get("spectrogram", [])
+        self.spectrogram = np.array(audio_features.get("spectrogram", []))  # Convert to NumPy array
         self.rhythm_pattern = audio_features.get("rhythm_pattern", 0.0)
-        self.mfcc = audio_features.get("mfcc", [])
-        self.chroma = audio_features.get("chroma", [])
-        self.spectral_contrast = audio_features.get("spectral_contrast", [])
+        self.mfcc = np.array(audio_features.get("mfcc", []))  # Convert to NumPy array
+        self.chroma = np.array(audio_features.get("chroma", []))  # Convert to NumPy array
+        self.spectral_contrast = np.array(audio_features.get("spectral_contrast", []))  # Convert to NumPy array
         self.notes = []
 
     def generate_notes(self):
