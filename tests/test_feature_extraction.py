@@ -63,5 +63,14 @@ class TestFeatureExtraction(unittest.TestCase):
         self.assertGreaterEqual(spectral_contrast.shape[0], 2)
         self.assertGreater(spectral_contrast.shape[1], 0)
 
+    def test_extract_tempo_changes(self):
+        """Test if tempo changes extraction provides a list of tempos."""
+        tempo_changes = self.feature_extractor.extract_tempo_changes()
+        self.assertIsInstance(tempo_changes, np.ndarray)
+        self.assertGreater(len(tempo_changes), 0)
+        for tempo in tempo_changes:
+            self.assertIsInstance(tempo, float)
+            self.assertGreater(tempo, 0)  # Tempo should be positive
+
 if __name__ == '__main__':
     unittest.main()

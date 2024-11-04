@@ -1,7 +1,8 @@
 # feature_extraction.py
 import librosa
 import numpy as np
-from librosa.feature import rhythm
+from librosa.feature import rhythm 
+
 
 class FeatureExtraction:
     def __init__(self, audio_data, sample_rate):
@@ -30,7 +31,7 @@ class FeatureExtraction:
         return spectrogram
 
     def extract_rhythm_pattern(self):
-        """Extract rhythmic pattern or beats."""
+        """Extract the general tempo as rhythm pattern."""
         onset_env = librosa.onset.onset_strength(y=self.audio_data, sr=self.sample_rate)
         rhythm_pattern = rhythm.tempo(onset_envelope=onset_env, sr=self.sample_rate)
         return float(rhythm_pattern[0]) if rhythm_pattern.size > 0 else 0.0
@@ -55,6 +56,12 @@ class FeatureExtraction:
         spectral_contrast = librosa.feature.spectral_contrast(y=self.audio_data, sr=self.sample_rate)
         return spectral_contrast
 
+    def extract_tempo_changes(self):
+        """Detects tempo changes over time in the audio data."""
+        onset_env = librosa.onset.onset_strength(y=self.audio_data, sr=self.sample_rate)
+        tempos = rhythm.tempo(onset_envelope=onset_env, sr=self.sample_rate, aggregate=None)
+        return tempos
+
     def extract_all_features(self):
         """Extract all features into a dictionary."""
         return {
@@ -66,5 +73,6 @@ class FeatureExtraction:
             "onsets": self.extract_onsets(),
             "mfcc": self.extract_mfcc(),
             "chroma": self.extract_chroma(),
-            "spectral_contrast": self.extract_spectral_contrast()
+            "spectral_contrast": self.extract_spectral_contrast(),
+            "tempo_changes": self.extract_tempo_changes()
         }
